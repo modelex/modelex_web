@@ -1,0 +1,95 @@
+---
+title: "Logistic regression"
+author: ""
+date: "2023-02-14"
+categories: [R, code, Logistic Regression]
+---
+
+## R code to estimate a logistic regression model using the maximum likelihood method
+
+This code defines three functions: **`log_likelihood`**, **`optimize_log_likelihood`**, and **`predict`**. The **`log_likelihood`** function takes three vectors **`beta`**, **`x`**, and **`y`** as input and returns the log-likelihood of the logistic regression model. The **`optimize_log_likelihood`** function takes an initial guess for the parameters **`beta`** and two vectors **`x`** and **`y`** as input and returns the maximum likelihood estimates for the parameters. The **`predict`** function takes the estimated parameters **`beta_hat`** and an input vector **`x`** and returns the predicted probabilities of the outcome.
+
+In this example, we generate some example data using the **`runif`** and **`rbinom`** functions, and then use the **`optimize_log_likelihood`** function to estimate the parameters of the logistic regression model using the maximum likelihood method. Finally, we use the **`predict`** function to get the predicted probabilities of the outcome.
+
+```{r}
+# Define the log-likelihood function
+log_likelihood <- function(beta, x, y) {
+  n <- length(x)
+  p <- 1 / (1 + exp(-beta[1] - beta[2] * x))
+  log_likelihood <- sum(y * log(p) + (1 - y) * log(1 - p))
+  return(-log_likelihood)
+}
+
+# Define the function to optimize the log-likelihood function
+optimize_log_likelihood <- function(beta, x, y) {
+  result <- optim(beta, log_likelihood, x = x, y = y, method = "BFGS")
+  beta_hat <- result$par
+  return(beta_hat)
+}
+
+# Define the function to predict the output
+predict <- function(beta_hat, x) {
+  p <- 1 / (1 + exp(-beta_hat[1] - beta_hat[2] * x))
+  return(p)
+}
+
+# Generate some example data
+set.seed(123)
+x <- runif(100)
+y <- rbinom(100, size = 1, prob = 1 / (1 + exp(-2 - 3 * x)))
+
+# Estimate the parameters
+beta_init <- c(0, 0)
+beta_hat <- optimize_log_likelihood(beta_init, x, y)
+
+# Predict the output
+p_hat <- predict(beta_hat, x)
+
+```
+
+## R code to estimate a standard logistic regression model via maximum likelihood 
+
+This code defines three functions: **`log_likelihood`**, **`optimize_log_likelihood`**, and **`predict`**. The **`log_likelihood`** function takes three matrices **`beta`**, **`X`**, and **`y`** as input and returns the log-likelihood of the logistic regression model. The **`optimize_log_likelihood`** function takes an initial guess for the parameters **`beta`** and two matrices **`X`** and **`y`** as input and returns the maximum likelihood estimates for the parameters. The **`predict`** function takes the estimated parameters **`beta_hat`** and a design matrix **`X`** and returns the predicted probabilities of the outcome.
+
+In this example, we generate some example data using the **`rnorm`** and **`rbinom`** functions, and then use the **`optimize_log_likelihood`** function to estimate the parameters of the logistic regression model using the maximum likelihood method. Finally, we use the **`predict`** function to get the predicted probabilities of the outcome.
+
+```{r}
+# Define the log-likelihood function
+log_likelihood <- function(beta, X, y) {
+  n <- length(y)
+  p <- 1 / (1 + exp(-X %*% beta))
+  log_likelihood <- sum(y * log(p) + (1 - y) * log(1 - p))
+  return(-log_likelihood)
+}
+
+# Define the function to optimize the log-likelihood function
+optimize_log_likelihood <- function(beta, X, y) {
+  result <- optim(beta, log_likelihood, X = X, y = y, method = "BFGS")
+  beta_hat <- result$par
+  return(beta_hat)
+}
+
+# Define the function to predict the output
+predict <- function(beta_hat, X) {
+  p <- 1 / (1 + exp(-X %*% beta_hat))
+  return(p)
+}
+
+# Generate some example data
+set.seed(123)
+n <- 100
+p <- 5
+X <- matrix(rnorm(n * p), nrow = n)
+colnames(X) <- paste0("X", 1:p)
+X <- cbind(1, X)
+beta <- rnorm(p + 1)
+y <- rbinom(n, size = 1, prob = 1 / (1 + exp(-X %*% beta)))
+
+# Estimate the parameters
+beta_init <- rep(0, p + 1)
+beta_hat <- optimize_log_likelihood(beta_init, X, y)
+
+# Predict the output
+p_hat <- predict(beta_hat, X)
+
+```

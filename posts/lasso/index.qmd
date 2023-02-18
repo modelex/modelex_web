@@ -1,0 +1,102 @@
+---
+title: "Lasso Regression"
+author: ""
+date: "2023-02-14"
+categories: [R, code, Lasso Regression]
+---
+
+## R code to estimated a lasso regression
+
+In this example, we first generate some sample data with **`n`** observations and **`p`** predictor variables. We then define the **`lambda`** value for the lasso regression. The predictors are standardized using the **`scale`** function.
+
+Next, we define the **`lasso_coef`** function to find the lasso regression coefficients. This function takes as input the predictor matrix **`X`**, the response vector **`y`**, the **`lambda`** value, and optional inputs for the tolerance (**`tol`**) and maximum number of iterations (**`max.iter`**).
+
+The lasso regression coefficients are estimated using a coordinate descent algorithm. The algorithm updates each coefficient **`beta[j]`** one at a time, while holding all other coefficients fixed. The **`sign`** and **`pmax`** functions are used to perform the soft-thresholding step in the lasso penalty.
+
+We then use the **`lasso_coef`** function to find the optimal values of **`beta`** that minimize the lasso regression objective. The resulting coefficients are stored in the **`lasso_coef`** variable.
+
+Finally, we print the estimated coefficients to the console.
+
+```{r}
+# Generate sample data
+set.seed(123)
+n <- 100
+p <- 10
+X <- matrix(rnorm(n*p), nrow=n)
+y <- rnorm(n)
+
+# Define lambda value
+lambda <- 0.5
+
+# Standardize the predictors
+X <- scale(X)
+
+# Define lasso regression function
+lasso_coef <- function(X, y, lambda, tol=1e-6, max.iter=1000) {
+  n <- nrow(X)
+  p <- ncol(X)
+  beta <- numeric(p)
+  t <- 1
+  iter <- 1
+  while(iter < max.iter) {
+    beta.old <- beta
+    for(j in 1:p) {
+      Xj <- X[,j]
+      beta.j <- beta[-j]
+      r <- y - X[, -j] %*% beta.j
+      z <- Xj %*% r / n
+      beta[j] <- sign(z) * pmax(abs(z) - lambda, 0)
+    }
+    t <- sqrt(sum((beta - beta.old)^2))
+    if(t < tol) break
+    iter <- iter + 1
+  }
+  return(beta)
+}
+
+# Find lasso coefficients
+lasso_coef <- lasso_coef(X, y, lambda)
+
+# Print coefficients
+lasso_coef
+
+```
+
+## R code to estimated a lasso regression by maximum likelihood
+
+In this example, we first generate some sample data with **`n`** observations and **`p`** predictor variables. We then define the **`lambda`** value for the lasso regression. The predictors are standardized using the **`scale`** function.
+
+Next, we define the **`lasso_fun`** function to optimize. This function takes as input the **`beta`** vector of regression coefficients, the predictor matrix **`X`**, the response vector **`y`**, and the **`lambda`** value. It returns the sum of the residual sum of squares and the lasso penalty term.
+
+We then use the **`optim`** function to find the optimal value of **`beta`** that minimizes the **`lasso_fun`** function. The starting values for **`beta`** are set to zero with **`rep(0,p)`**. The other inputs to **`optim`** are the **`lasso_fun`** function, **`X`**, **`y`**, **`lambda`**, and the optimization method **`"L-BFGS-B"`**. The **`par`** element of the output from **`optim`** contains the estimated coefficients.
+
+Finally, we print the estimated coefficients to the console.
+
+```{r}
+# Generate sample data
+set.seed(123)
+n <- 100
+p <- 10
+X <- matrix(rnorm(n*p), nrow=n)
+y <- rnorm(n)
+
+# Define lambda value
+lambda <- 0.5
+
+# Standardize the predictors
+X <- scale(X)
+
+# Define function to optimize
+lasso_fun <- function(beta, X, y, lambda) {
+  sum((y - X %*% beta)^2) + lambda * sum(abs(beta))
+}
+
+# Use optim to find the lasso coefficients
+lasso_coef <- optim(par=rep(0,p), fn=lasso_fun, X=X, y=y, lambda=lambda, method="L-BFGS-B")$par
+
+# Print coefficients
+lasso_coef
+
+```
+
+\

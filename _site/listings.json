@@ -1,0 +1,19 @@
+[
+  {
+    "listing": "/index.html",
+    "items": [
+      "/posts/Logistic/index.html",
+      "/posts/ridge /index.html",
+      "/posts/BTM/index.html",
+      "/posts/KNN/index.html",
+      "/posts/NN/index.html",
+      "/posts/ELM/index.html",
+      "/posts/SGD/index.html",
+      "/posts/NM/index.html",
+      "/posts/CSM/index.html",
+      "/posts/GD/index.html",
+      "/posts/lasso/index.html",
+      "/posts/LR/index.html"
+    ]
+  }
+]

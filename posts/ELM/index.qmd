@@ -1,0 +1,108 @@
+---
+title: "Extreme Learning Machine (ELM) algorithm "
+author: ""
+date: "2023-02-14"
+categories: [R, code, Extreme Learning Machine, ELM]
+---
+
+## R code implementation of the Extreme Learning Machine (ELM) algorithm
+
+This code defines two functions: **`ELM`** and **`predict`**. The **`ELM`** function takes a data matrix **`X`**, a response vector **`y`**, the number of hidden units **`hidden_size`**, and the activation function **`activation_function`** as input and returns an ELM model consisting of the input weights **`W`**, the input biases **`b`**, the output weights **`beta`**, and the activation function. The function first initializes the input weights and biases randomly, then calculates the output of the hidden layer using the specified activation function, and finally calculates the output weights by solving a linear system. The **`predict`** function takes an ELM model and a data matrix **`X`** as input and returns the predicted output.
+
+In this example, we generate some example data using the **`runif`** and **`rnorm`** functions, and then apply the **`ELM`** function to the data to get the ELM model. Finally, we use the **`predict`** function to get the predicted output.
+
+```{r}
+# Define the ELM function
+ELM <- function(X, y, hidden_size, activation_function = "sigmoid") {
+  n <- nrow(X)
+  d <- ncol(X)
+  # Initialize the input weights and biases
+  W <- matrix(rnorm(d * hidden_size), ncol = hidden_size)
+  b <- rnorm(hidden_size)
+  # Calculate the hidden layer output
+  if (activation_function == "sigmoid") {
+    H <- 1 / (1 + exp(-X %*% W - b))
+  } else if (activation_function == "relu") {
+    H <- pmax(0, X %*% W + b)
+  }
+  # Calculate the output weights
+  beta <- solve(H) %*% y
+  # Return the ELM model
+  return(list(W = W, b = b, beta = beta, activation_function = activation_function))
+}
+
+# Define the function to predict the output
+predict <- function(model, X) {
+  if (model$activation_function == "sigmoid") {
+    H <- 1 / (1 + exp(-X %*% model$W - model$b))
+  } else if (model$activation_function == "relu") {
+    H <- pmax(0, X %*% model$W + model$b)
+  }
+  y_pred <- H %*% model$beta
+  return(y_pred)
+}
+
+# Generate some example data
+set.seed(123)
+X <- matrix(runif(100 * 5), ncol = 5)
+y <- rnorm(100)
+
+# Apply the ELM function to the data
+hidden_size <- 100
+activation_function <- "sigmoid"
+model <- ELM(X, y, hidden_size, activation_function)
+
+# Predict the output
+y_pred <- predict(model, X)
+
+```
+
+### More complex function
+
+```{r}
+ elm <- function(X, y, n_hidden=NULL, active_fun=tanh) {
+  # X: an N observations x p features matrix
+  # y: the target
+  # n_hidden: the number of hidden nodes
+  # active_fun: activation function
+  pp1 = ncol(X) + 1
+  w0 = matrix(rnorm(pp1*n_hidden), pp1, n_hidden)       # random weights
+  h = active_fun(cbind(1, scale(X)) %*% w0)             # compute hidden layer
+  B = MASS::ginv(h) %*% y                               # find weights for hidden layer
+  fit = h %*% B                                         # fitted values
+  list(fit= fit, loss=crossprod(fit - y), B=B, w0=w0)
+}
+
+
+
+# one variable, complex function -------------------------------------------
+library(tidyverse); library(mgcv)
+set.seed(123)
+n = 5000
+x = runif(n)
+# x = rnorm(n)
+mu = sin(2*(4*x-2)) + 2*exp(-(16^2)*((x-.5)^2))
+y = rnorm(n, mu, .3)
+# qplot(x, y)
+d = data.frame(x,y) 
+
+X_ = as.matrix(x, ncol=1)
+
+test = elm(X_, y, n_hidden=100)
+str(test)
+# qplot(x, y) + geom_line(aes(y=test$fit), color='#1e90ff')
+cor(test$fit[,1], y)^2
+
+gam_comparison = gam(y~s(x))
+summary(gam_comparison)$r.sq
+
+
+d %>% 
+  mutate(fit_elm = test$fit,
+         fit_gam = fitted(gam_comparison)) %>% 
+  ggplot() + 
+  geom_point(aes(x, y), alpha=.1) +
+  geom_line(aes(x, y=fit_elm), color='#1e90ff') + 
+  geom_line(aes(x, y=fit_gam), color='darkred')
+
+```

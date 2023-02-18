@@ -1,0 +1,86 @@
+---
+title: "Linear Regression"
+author: ""
+date: "2023-02-14"
+categories: [R, code, Linear Regression]
+---
+
+## R code to estimate a simple linear regression model
+
+This code defines two functions: **`regression`** and **`predict`**. The **`regression`** function takes two vectors **`x`** and **`y`** as input and returns the estimated intercept **`b0`** and slope **`b1`** of the simple linear regression model. The **`predict`** function takes the estimated parameters **`b0`** and **`b1`** and an input vector **`x`** and returns the predicted output.
+
+In this example, we generate some example data using the **`runif`** and **`rnorm`** functions and then use the **`regression`** function to estimate the parameters of the simple linear regression model. Finally, we use the **`predict`** function to get the predicted output.
+
+```{r}
+# Define the function to estimate the parameters
+regression <- function(x, y) {
+  n <- length(x)
+  x_mean <- mean(x)
+  y_mean <- mean(y)
+  numerator <- sum((x - x_mean) * (y - y_mean))
+  denominator <- sum((x - x_mean)^2)
+  b1 <- numerator / denominator
+  b0 <- y_mean - b1 * x_mean
+  return(c(b0, b1))
+}
+
+# Define the function to predict the output
+predict <- function(b0, b1, x) {
+  return(b0 + b1 * x)
+}
+
+# Generate some example data
+set.seed(123)
+x <- runif(100)
+y <- 2 + 3 * x + rnorm(100, 0, 0.2)
+
+# Estimate the parameters
+params <- regression(x, y)
+b0 <- params[1]
+b1 <- params[2]
+
+# Predict the output
+y_hat <- predict(b0, b1, x)
+
+```
+
+## R code to estimate a simple linear regression model using the maximum likelihood method
+
+This code defines three functions: **`log_likelihood`**, **`optimize_log_likelihood`**, and **`predict`**. The **`log_likelihood`** function takes three vectors **`beta`**, **`x`**, and **`y`** as input and returns the log-likelihood of the simple linear regression model. The **`optimize_log_likelihood`** function takes an initial guess for the parameters **`beta`** and two vectors **`x`** and **`y`** as input and returns the maximum likelihood estimates for the parameters. The **`predict`** function takes the estimated parameters **`beta_hat`** and an input vector **`x`** and returns the predicted output.
+
+In this example, we generate some example data using the **`runif`** and **`rnorm`** functions, and then use the **`optimize_log_likelihood`** function to estimate the parameters of the simple linear regression model using the maximum likelihood method. Finally, we use the **`predict`** function to get the predicted output.
+
+```{r}
+# Define the log-likelihood function
+log_likelihood <- function(beta, x, y) {
+  n <- length(x)
+  mu <- beta[1] + beta[2] * x
+  log_likelihood <- sum(-0.5 * log(2 * pi) - 0.5 * log(var(y)) - 0.5 * ((y - mu)^2)/var(y))
+  return(-log_likelihood)
+}
+
+# Define the function to optimize the log-likelihood function
+optimize_log_likelihood <- function(beta, x, y) {
+  result <- optim(beta, log_likelihood, x = x, y = y, method = "BFGS")
+  beta_hat <- result$par
+  return(beta_hat)
+}
+
+# Define the function to predict the output
+predict <- function(beta_hat, x) {
+  return(beta_hat[1] + beta_hat[2] * x)
+}
+
+# Generate some example data
+set.seed(123)
+x <- runif(100)
+y <- 2 + 3 * x + rnorm(100, 0, 0.2)
+
+# Estimate the parameters
+beta_init <- c(0, 0)
+beta_hat <- optimize_log_likelihood(beta_init, x, y)
+
+# Predict the output
+y_hat <- predict(beta_hat, x)
+
+```

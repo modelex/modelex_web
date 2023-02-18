@@ -1,0 +1,39 @@
+---
+title: "k-Nearest Neighbors (KNN)"
+author: ""
+date: "2023-02-14"
+categories: [R, code, k-Nearest Neighbors, KNN]
+---
+
+## R code implementation of the k-Nearest Neighbors (KNN) 
+
+This code defines a function **`KNN`** that takes a training dataset, a test dataset, the corresponding class labels for the training data, and the number of nearest neighbors **`k`** as input and returns the class prediction for each test observation. The function first calculates the Euclidean distance between each test observation and each training observation, then selects the **`k`** nearest neighbors, and finally predicts the class by majority vote among the nearest neighbors.
+
+In this example, we generate some example data using the **`rnorm`** function, and then apply the **`KNN`** function to each test observation to get the predicted class. The number of nearest neighbors **`k`** is set to 5.
+
+\
+
+```{r}
+# Define the KNN function
+KNN <- function(train, test, y_train, k = 1) {
+  distances <- as.matrix(dist(rbind(test, train), method = "euclidean"))[1, -1]
+  nearest_neighbors <- sort(distances, index.return = TRUE)$ix[1:k]
+  classes <- y_train[nearest_neighbors]
+  class_prediction <- names(sort(table(classes), decreasing = TRUE))[1]
+  return(class_prediction)
+}
+
+# Generate some example data
+set.seed(123)
+train <- matrix(rnorm(40 * 2), ncol = 2)
+colnames(train) <- c("x", "y")
+train_classes <- c("A", "B")[1 + (train[, 1] > 0)]
+
+test <- matrix(rnorm(10 * 2), ncol = 2)
+colnames(test) <- c("x", "y")
+
+# Apply the KNN function to each test observation
+k <- 5
+y_pred <- sapply(1:nrow(test), function(i) KNN(train, test[i, ], train_classes, k))
+
+```

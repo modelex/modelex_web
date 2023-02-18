@@ -1,0 +1,14 @@
+{
+  "hash": "c761ddc2d95380ddc07a2f5af39b4843",
+  "result": {
+    "markdown": "---\ntitle: \"k-Nearest Neighbors (KNN)\"\nauthor: \"\"\ndate: \"2023-02-14\"\ncategories: [R, code, k-Nearest Neighbors, KNN]\n---\n\n\n## R code implementation of the k-Nearest Neighbors (KNN) \n\nThis code defines a function **`KNN`** that takes a training dataset, a test dataset, the corresponding class labels for the training data, and the number of nearest neighbors **`k`** as input and returns the class prediction for each test observation. The function first calculates the Euclidean distance between each test observation and each training observation, then selects the **`k`** nearest neighbors, and finally predicts the class by majority vote among the nearest neighbors.\n\nIn this example, we generate some example data using the **`rnorm`** function, and then apply the **`KNN`** function to each test observation to get the predicted class. The number of nearest neighbors **`k`** is set to 5.\n\n\\\n\n\n::: {.cell}\n\n```{.r .cell-code}\n# Define the KNN function\nKNN <- function(train, test, y_train, k = 1) {\n  distances <- as.matrix(dist(rbind(test, train), method = \"euclidean\"))[1, -1]\n  nearest_neighbors <- sort(distances, index.return = TRUE)$ix[1:k]\n  classes <- y_train[nearest_neighbors]\n  class_prediction <- names(sort(table(classes), decreasing = TRUE))[1]\n  return(class_prediction)\n}\n\n# Generate some example data\nset.seed(123)\ntrain <- matrix(rnorm(40 * 2), ncol = 2)\ncolnames(train) <- c(\"x\", \"y\")\ntrain_classes <- c(\"A\", \"B\")[1 + (train[, 1] > 0)]\n\ntest <- matrix(rnorm(10 * 2), ncol = 2)\ncolnames(test) <- c(\"x\", \"y\")\n\n# Apply the KNN function to each test observation\nk <- 5\ny_pred <- sapply(1:nrow(test), function(i) KNN(train, test[i, ], train_classes, k))\n```\n:::\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

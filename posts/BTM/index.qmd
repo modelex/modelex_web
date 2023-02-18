@@ -1,0 +1,81 @@
+---
+title: "Decision tree algorithm "
+author: ""
+date: "2023-02-14"
+categories: [R, code, Decision tree]
+---
+
+## R code implementation of the decision tree algorithm
+
+This code defines two functions: **`decision_tree`** and **`predict`**. The **`decision_tree`** function takes a data matrix **`x`** and a response vector **`y`** as input and returns the root node of the decision tree. The function first checks if all observations have the same class, and if so, returns a leaf node with that class. Otherwise, it searches for the best split by iterating over all features and all possible split points, and selects the split that minimizes the weighted average of the error rates in the two resulting nodes. The function then creates two child nodes for the left and right sub-trees and recursively applies the same algorithm to each sub-tree. The **`predict`** function takes a decision tree node \`
+
+```{r}
+# Define the decision tree function
+decision_tree <- function(x, y) {
+  # Create a new tree node
+  node <- list()
+  node$split_variable <- NULL
+  node$split_value <- NULL
+  node$left_child <- NULL
+  node$right_child <- NULL
+  node$class <- NULL
+  # Check if all observations have the same class
+  if (length(unique(y)) == 1) {
+    node$class <- unique(y)
+    return(node)
+  }
+  # Find the best split
+  best_split <- list()
+  best_split$error_rate <- Inf
+  for (j in 1:ncol(x)) {
+    for (value in unique(x[, j])) {
+      left_idx <- x[, j] < value
+      right_idx <- x[, j] >= value
+      if (sum(left_idx) > 0 && sum(right_idx) > 0) {
+        left_y <- y[left_idx]
+        right_y <- y[right_idx]
+        left_error <- sum(left_y != mode(left_y)) / length(left_y)
+        right_error <- sum(right_y != mode(right_y)) / length(right_y)
+        error_rate <- (sum(left_idx) / nrow(x)) * left_error + (sum(right_idx) / nrow(x)) * right_error
+        if (error_rate < best_split$error_rate) {
+          best_split$error_rate <- error_rate
+          best_split$split_variable <- j
+          best_split$split_value <- value
+        }
+      }
+    }
+  }
+  # Create the left and right child nodes and recurse
+  node$split_variable <- best_split$split_variable
+  node$split_value <- best_split$split_value
+  left_idx <- x[, node$split_variable] < node$split_value
+  right_idx <- x[, node$split_variable] >= node$split_value
+  node$left_child <- decision_tree(x[left_idx, ], y[left_idx])
+  node$right_child <- decision_tree(x[right_idx, ], y[right_idx])
+  return(node)
+}
+
+# Define the function to predict the output
+predict <- function(node, x) {
+  if (!is.null(node$class)) {
+    return(node$class)
+  }
+  if (x[node$split_variable] < node$split_value) {
+    return(predict(node$left_child, x))
+  } else {
+    return(predict(node$right_child, x))
+  }
+}
+
+# Generate some example data
+set.seed(123)
+x <- matrix(runif(100 * 2), ncol = 2)
+y <- as.factor(ifelse(x[, 1] + x[, 2] > 1, "A", "B"))
+
+# Build the decision tree model
+tree <- decision_tree(x, y)
+
+# Predict the output
+y_pred <- sapply(1:nrow(x), function(i) predict(tree, x[i,]))
+
+```
